@@ -4,20 +4,15 @@
 #include<limits.h>
 #include<string.h>
 
-#define ARRAY_LIST_INITIAL_SIZE (10)
+#define ARRAY_LIST_INITIAL_SIZE (16)
 
 struct Private_t {
 
     size_t size;
-
     size_t elemSize;
     size_t allocSize;
     void* array;
 };
-
-int  getSize(void* class);
-char add    (void* class, void* element);
-char get    (void* class, int index, void* element);
 
 static char resize(ArrayList* arrayList)
 {
@@ -31,6 +26,45 @@ static char resize(ArrayList* arrayList)
     }
     arrayList->private->array = newArray;
     arrayList->private->allocSize *= 2;
+    return 0;
+}
+
+static int getSize(void* class)
+{
+    size_t size = 0;
+    if (!class) {
+        return -1;
+    }
+    size = ((ArrayList*)class)->private->size;
+    return size > INT_MAX ? -1 : size;
+}
+
+static char add(void* class, void* element)
+{
+    size_t pos = 0;
+    if (!class || !element) {
+        return 1;
+    }
+    if (((ArrayList*)class)->private->size >= ((ArrayList*)class)->private->allocSize) {
+        if (resize(class)) {
+            return 1;
+        }
+    }
+    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
+    memcpy(((ArrayList*)class)->private->array + pos, element, ((ArrayList*)class)->private->elemSize);
+    ((ArrayList*)class)->private->size++;
+    return 0;
+}
+
+static char get(void* class, int index, void* element)
+{
+    size_t pos = 0;
+    if (!class || !element || !((ArrayList*)class)->private->size) {
+        return 1;
+    }  
+    ((ArrayList*)class)->private->size--;
+    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
+    memcpy(element, ((ArrayList*)class)->private->array + pos, ((ArrayList*)class)->private->elemSize);
     return 0;
 }
 
@@ -72,43 +106,4 @@ ArrayList* newArrayList(ArrayListConstructor constuctor, ...)
     }
     va_end(args);
     return arrayList;
-}
-
-int getSize(void* class)
-{
-    size_t size = 0;
-    if (!class) {
-        return -1;
-    }
-    size = ((ArrayList*)class)->private->size;
-    return size > INT_MAX ? -1 : size;
-}
-
-char add(void* class, void* element)
-{
-    size_t pos = 0;
-    if (!class || !element) {
-        return 1;
-    }
-    if (((ArrayList*)class)->private->size >= ((ArrayList*)class)->private->allocSize) {
-        if (resize(class)) {
-            return 1;
-        }
-    }
-    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
-    memcpy(((ArrayList*)class)->private->array + pos, element, ((ArrayList*)class)->private->elemSize);
-    ((ArrayList*)class)->private->size++;
-    return 0;
-}
-
-char get(void* class, int index, void* element)
-{
-    size_t pos = 0;
-    if (!class || !element || !((ArrayList*)class)->private->size) {
-        return 1;
-    }  
-    ((ArrayList*)class)->private->size--;
-    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
-    memcpy(element, ((ArrayList*)class)->private->array + pos, ((ArrayList*)class)->private->elemSize);
-    return 0;
 }

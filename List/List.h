@@ -1,35 +1,19 @@
 /**
  * @file List.h
  * 
- * @brief Created by Martin Chekurov.
+ * @brief Introduces Java's interface concept in 
  * 
  * @details 
- *        Introduces Java's interface concept in C.
+ *        Created by Martin Chekurov
  */
 
 #ifndef LIST_H_
 #define LIST_H_
 
 /**
- * @brief Represents a collection of objects.
+ * @brief Represents a dynamic collection of objects
  */ 
 typedef struct {
-
-    /**
-     * @brief   Returns the number of elements in this list
-     *
-     * @param[in]   class   The #class member is given as an argument
-     *
-     * @return  the number of elements in this list or -1 in case of an error
-     *
-     * @retval  size_t  number of elements
-     * 
-     * @code        
-     *              List* list = some impelemnting class;
-     *              list->getSize(list->class)
-     * @endcode
-     */
-    int (*getSize)(void* class);
 
     /**
      * @brief   Appends the specified element to the end of this list
@@ -65,6 +49,22 @@ typedef struct {
      * @endcode
      */
     char (*get)(void* class, int index, void* element);
+
+    /**
+     * @brief   Returns the number of elements in this list
+     *
+     * @param[in]   class   The #class member is given as an argument
+     *
+     * @return  the number of elements in this list or -1 in case of an error
+     *
+     * @retval  size_t  number of elements
+     * 
+     * @code        
+     *              List* list = some impelemnting class;
+     *              list->getSize(list->class)
+     * @endcode
+     */
+    int (*getSize)(void* class);
 
     /**
      * @brief A pointer to the class that implements the interface
