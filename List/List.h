@@ -10,6 +10,8 @@
 #ifndef LIST_H_
 #define LIST_H_
 
+#include<stdlib.h>
+
 /**
  * @brief Represents a dynamic collection of objects
  */ 
@@ -30,7 +32,7 @@ typedef struct {
      *              list->add(list->class, &num);
      * @endcode
      */
-    char (*add)(void* class, void* element);
+    int (*add)(void* class, void* element);
 
     /**
      * @brief   Returns the element at the specified position in this list
@@ -48,23 +50,33 @@ typedef struct {
      *              list->get(list->class, 5, &num)
      * @endcode
      */
-    char (*get)(void* class, int index, void* element);
+    int (*get)(void* class, size_t index, void* element);
 
     /**
      * @brief   Returns the number of elements in this list
      *
      * @param[in]   class   The #class member is given as an argument
+     * @param[out]   size   number of elements in this list
      *
-     * @return  the number of elements in this list or -1 in case of an error
-     *
-     * @retval  size_t  number of elements
+     * @retval  0  successful
+     * @retval  1  fail
      * 
      * @code        
      *              List* list = some impelemnting class;
      *              list->getSize(list->class)
      * @endcode
      */
-    int (*getSize)(void* class);
+    int (*getSize)(void* class, size_t* size);
+
+    /**
+     * @brief   Removes all elements from the list
+     *
+     * @param[in]   class   The #class member is given as an argument
+     *
+     * @retval  0  successful
+     * @retval  1  fail
+     */
+    int (*clear)(void* class);
 
     /**
      * @brief A pointer to the class that implements the interface

@@ -29,20 +29,19 @@ static char resize(ArrayList* arrayList)
     return 0;
 }
 
-static int getSize(void* class)
+static int getSize(void* class, size_t* size)
 {
-    size_t size = 0;
-    if (!class) {
-        return -1;
+    if (!class || !size) {
+        return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    return size > INT_MAX ? -1 : size;
+    *size = ((ArrayList*)class)->private->size;
+    return 0;
 }
 
-static char add(void* class, void* element)
+static int add(void* class, void* element)
 {
     size_t pos = 0;
-    if (!class || !element) {
+    if (!class || !element || (((ArrayList*)class)->private->size >= (size_t)-1)) {
         return 1;
     }
     if (((ArrayList*)class)->private->size >= ((ArrayList*)class)->private->allocSize) {
@@ -56,15 +55,24 @@ static char add(void* class, void* element)
     return 0;
 }
 
-static char get(void* class, int index, void* element)
+static int get(void* class, size_t index, void* element)
 {
     size_t pos = 0;
-    if (!class || !element || !((ArrayList*)class)->private->size) {
+    if (!class || !element || !((ArrayList*)class)->private->size || (index >= (size_t)-1)) {
         return 1;
     }  
     ((ArrayList*)class)->private->size--;
     pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
     memcpy(element, ((ArrayList*)class)->private->array + pos, ((ArrayList*)class)->private->elemSize);
+    return 0;
+}
+
+static int clear(void* class)
+{
+    if (!class) {
+        return 1;
+    }
+    ((ArrayList*)class)->private->size = 0;
     return 0;
 }
 
@@ -82,6 +90,7 @@ static ArrayList* constructor(size_t allocSize, size_t elemSize)
     arrayList->list.getSize = getSize;
     arrayList->list.add = add;
     arrayList->list.get = get;
+    arrayList->list.clear = clear;
     arrayList->private->elemSize = elemSize;
     arrayList->private->allocSize = allocSize;
     arrayList->private->array = calloc(arrayList->private->allocSize, arrayList->private->elemSize);
