@@ -83,6 +83,23 @@ static int get(void* class, size_t index, void* object)
     return 0;
 }
 
+static int set(void* class, size_t index, void* object)
+{
+    size_t *pos = 0, *size = 0, *elemSize = 0;
+    if (!class || !object || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
+        return 1;
+    }  
+    size = &(((ArrayList*)class)->private->size);
+    if (!*size || index >= *size) {
+        return 1;
+    }
+    elemSize = &(((ArrayList*)class)->private->elemSize);
+    pos = ((ArrayList*)class)->private->array + (index)*(*elemSize);
+    memset(pos, 0, *elemSize);
+    memcpy(pos, object, *elemSize);
+    return 0;
+}
+
 static int clear(void* class)
 {
     if (!class) {
@@ -151,6 +168,7 @@ static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
     arrayList->list->clear = clear;
     arrayList->list->remove = remove_;
     arrayList->list->contains = contains;
+    arrayList->list->set = set;
 
     if (cmp) {
         arrayList->private->cmp = cmp;

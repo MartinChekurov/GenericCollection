@@ -86,6 +86,24 @@ typedef struct {
     int (*get)(void* class, size_t index, void* object);
 
     /**
+     * @brief Replaces the element at the specified position in this list with the specified element
+     *
+     * @param[in] class The #class member is given as an argument
+     * @param[in] index Index of the element to replace
+     * @param[out] object Object to be stored at the specified position
+     *
+     * @retval  0  Successful
+     * @retval  1  Fail
+     * 
+     * @code        
+     *          int num = 0;
+     *          List* list = some impelemnting class;
+     *          list->set(list->class, 5, &num)
+     * @endcode
+     */
+    int (*set)(void* class, size_t index, void* object);
+
+    /**
      * @brief Returns the number of objects in this list
      *
      * @param[in] class The #class member is given as an argument
