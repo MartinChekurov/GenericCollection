@@ -3,8 +3,11 @@
 #include<stdarg.h>
 #include<limits.h>
 #include<string.h>
+#include<stdio.h>
 
 #define ARRAY_LIST_INITIAL_SIZE (16)
+
+typedef int (*Cmp)(void*, void*);
 
 struct Private_t {
 
@@ -12,6 +15,8 @@ struct Private_t {
     size_t elemSize;
     size_t allocSize;
     void* array;
+
+    Cmp cmp;
 };
 
 static char resize(ArrayList* arrayList)
@@ -38,32 +43,43 @@ static int getSize(void* class, size_t* size)
     return 0;
 }
 
-static int add(void* class, void* element)
+static int add(void* class, void* object)
 {
-    size_t pos = 0;
-    if (!class || !element || (((ArrayList*)class)->private->size >= (size_t)-1)) {
+    size_t pos = 0, *size = 0, *elemSize = 0, *allocSize = 0;
+    if (!class || !object || !((ArrayList*)class)->private) {
         return 1;
     }
-    if (((ArrayList*)class)->private->size >= ((ArrayList*)class)->private->allocSize) {
+    size = &(((ArrayList*)class)->private->size);
+    if (!*size >= ((size_t)-1)) {
+        return 1;
+    }
+    elemSize = &(((ArrayList*)class)->private->elemSize);
+    allocSize = &(((ArrayList*)class)->private->allocSize);
+    if (*size >= *allocSize) {
         if (resize(class)) {
             return 1;
         }
     }
-    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
-    memcpy(((ArrayList*)class)->private->array + pos, element, ((ArrayList*)class)->private->elemSize);
-    ((ArrayList*)class)->private->size++;
+    pos = (*size) * (*elemSize);
+    memcpy(((ArrayList*)class)->private->array + pos, object, *elemSize);
+    (*size)++;
     return 0;
 }
 
-static int get(void* class, size_t index, void* element)
+static int get(void* class, size_t index, void* object)
 {
-    size_t pos = 0;
-    if (!class || !element || !((ArrayList*)class)->private->size || (index >= (size_t)-1)) {
+    size_t *pos = 0, *size = 0, *elemSize = 0;
+    if (!class || !object || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
         return 1;
     }  
-    ((ArrayList*)class)->private->size--;
-    pos = ((ArrayList*)class)->private->size * ((ArrayList*)class)->private->elemSize;
-    memcpy(element, ((ArrayList*)class)->private->array + pos, ((ArrayList*)class)->private->elemSize);
+    size = &(((ArrayList*)class)->private->size);
+    if (!*size || index >= *size) {
+        return 1;
+    }
+    (*size)--;
+    elemSize = &(((ArrayList*)class)->private->elemSize);
+    pos = ((ArrayList*)class)->private->array + ((*size)*(*elemSize));
+    memcpy(object, pos, *elemSize);
     return 0;
 }
 
@@ -76,7 +92,46 @@ static int clear(void* class)
     return 0;
 }
 
-static ArrayList* constructor(size_t allocSize, size_t elemSize)
+static int remove_(void* class, size_t index)
+{
+    size_t *src = 0, *dst = 0;
+    size_t *size = 0, *elemSize = 0;
+    if (!class || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
+        return 1;
+    }
+    size = &(((ArrayList*)class)->private->size);
+    if (!*size || index >= *size) {
+        return 1;
+    }
+    elemSize = &(((ArrayList*)class)->private->elemSize);
+    src = ((ArrayList*)class)->private->array + ((index + 1) * (*elemSize)); 
+    dst = ((ArrayList*)class)->private->array + ((index) * (*elemSize));
+    memmove(dst, src, (*size - index - 1) * (*elemSize));
+    (*size)--;
+    return 0;
+}
+
+static int contains(void* class, void* object)
+{
+    size_t *obj = 0, *size = 0, *elemSize = 0, i = 0;
+    Cmp cmp = 0;
+    if (!class || !object || !((ArrayList*)class)->private ||
+        !((ArrayList*)class)->private->cmp) {
+        return 1;
+    }
+    size = &(((ArrayList*)class)->private->size);
+    elemSize = &(((ArrayList*)class)->private->elemSize);
+    cmp = ((ArrayList*)class)->private->cmp;
+    for (i = 0 ; i < *size ; i++) {
+        obj = ((ArrayList*)class)->private->array + (i*(*elemSize));
+        if (!cmp(obj, object)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
 {
     ArrayList* arrayList = calloc(1, sizeof(*arrayList));
     if (!arrayList) {
@@ -86,11 +141,21 @@ static ArrayList* constructor(size_t allocSize, size_t elemSize)
     if (!arrayList->private) {
         return NULL;
     }
-    arrayList->list.class = arrayList;
-    arrayList->list.getSize = getSize;
-    arrayList->list.add = add;
-    arrayList->list.get = get;
-    arrayList->list.clear = clear;
+    arrayList->list = calloc(1, sizeof(*arrayList->list));
+    if (!arrayList->private) {
+        return NULL;
+    }
+    arrayList->list->getSize = getSize;
+    arrayList->list->add = add;
+    arrayList->list->get = get;
+    arrayList->list->clear = clear;
+    arrayList->list->remove = remove_;
+    arrayList->list->contains = contains;
+
+    if (cmp) {
+        arrayList->private->cmp = cmp;
+    }
+    arrayList->list->class = arrayList;
     arrayList->private->elemSize = elemSize;
     arrayList->private->allocSize = allocSize;
     arrayList->private->array = calloc(arrayList->private->allocSize, arrayList->private->elemSize);
@@ -100,19 +165,33 @@ static ArrayList* constructor(size_t allocSize, size_t elemSize)
     return arrayList;
 }
 
-ArrayList* newArrayList(ArrayListConstructor constuctor, ...)
-{
+ArrayList* newArrayList(ArrayListType type, ...)
+{   
+    size_t elemSize = 0;
+    size_t allocSize = ARRAY_LIST_INITIAL_SIZE;
+    Cmp cmp = 0;
+
+    size_t i = 0;
     ArrayList* arrayList = NULL;
-    va_list args;
-    va_start(args, constuctor);
-    switch(constuctor) {
-        case ARRAY_LIST_DEFAULT:
-            arrayList = constructor(ARRAY_LIST_INITIAL_SIZE, va_arg(args, size_t));
-            break;
-        case ARRAY_LIST_SET_SIZE:
-            arrayList = constructor(va_arg(args, size_t), va_arg(args, size_t));
-            break;
+
+    if (!type) {
+        return 0;
     }
+
+    va_list args;
+    va_start(args, type);
+
+    if (type & ARRAY_LIST_OBJECT_SIZE) {
+        elemSize = va_arg(args, size_t);
+    }
+    if (type & ARRAY_LIST_ALLOC_SIZE) {
+        allocSize = va_arg(args, size_t);
+    }
+    if (type & ARRAY_LIST_CMP) {
+        cmp = va_arg(args, Cmp);
+    }
+
+    arrayList = constructor(elemSize, allocSize, cmp);
     va_end(args);
     return arrayList;
 }

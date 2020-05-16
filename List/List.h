@@ -1,7 +1,7 @@
 /**
  * @file List.h
  * 
- * @brief Introduces Java's interface concept in 
+ * @brief Represents a dynamic collection of objects
  * 
  * @details 
  *        Created by Martin Chekurov
@@ -18,65 +18,106 @@
 typedef struct {
 
     /**
-     * @brief   Appends the specified element to the end of this list
+     * @brief Appends the specified object to the end of this list
      *
-     * @param[in]   class   The #class member is given as an argument
-     * @param[in]   element   element to be appended to this list
+     * @param[in] class The #class member is given as an argument
+     * @param[in] objects Object to be appended to this list
      *
-     * @retval  0  successful
-     * @retval  1  fail
+     * @retval 0 Successful
+     * @retval 1 Fail
      * 
      * @code        
-     *              int num = 20;
-     *              List* list = some impelemnting class;
-     *              list->add(list->class, &num);
+     *        int num = 20;
+     *        List* list = some impelemnting class;
+     *        list->add(list->class, &num);
      * @endcode
      */
-    int (*add)(void* class, void* element);
+    int (*add)(void* class, void* object);
 
     /**
-     * @brief   Returns the element at the specified position in this list
+     * @brief Removes all objects from the list
      *
-     * @param[in]   class   The #class member is given as an argument
-     * @param[in]   index   index of the element to return
-     * @param[out]   element   element to be returned
+     * @param[in] class The #class member is given as an argument
      *
-     * @retval  0  successful
-     * @retval  1  fail
+     * @retval 0 Successful
+     * @retval 1 Fail
      * 
-     * @code        
-     *              int num = 0;
-     *              List* list = some impelemnting class;
-     *              list->get(list->class, 5, &num)
+     *  @code        
+     *         List* list = some impelemnting class;
+     *         list->clear(list->class);
      * @endcode
      */
-    int (*get)(void* class, size_t index, void* element);
+    int (*clear)(void* class);
 
     /**
-     * @brief   Returns the number of elements in this list
+     * @brief Removes the object at the specified position in this list.
+     *          
+     * @details Shifts any subsequent objects to the left
+     * 
+     * @param[in] class  The #class member is given as an argument
+     * @param[in] index The index of the object to be removed
      *
-     * @param[in]   class   The #class member is given as an argument
-     * @param[out]   size   number of elements in this list
-     *
-     * @retval  0  successful
-     * @retval  1  fail
+     * @retval 0 Successful
+     * @retval 1 Fail
      * 
      * @code        
-     *              List* list = some impelemnting class;
-     *              list->getSize(list->class)
+     *         List* list = some impelemnting class;
+     *         list->remove(list->class, 6);
+     * @endcode
+     */
+    int (*remove)(void* class, size_t index);
+    
+    /**
+     * @brief Returns the object at the specified position in this list
+     *
+     * @param[in] class The #class member is given as an argument
+     * @param[in] index Index of the object to return
+     * @param[out] object Object to be returned
+     *
+     * @retval  0  Successful
+     * @retval  1  Fail
+     * 
+     * @code        
+     *          int num = 0;
+     *          List* list = some impelemnting class;
+     *          list->get(list->class, 5, &num)
+     * @endcode
+     */
+    int (*get)(void* class, size_t index, void* object);
+
+    /**
+     * @brief Returns the number of objects in this list
+     *
+     * @param[in] class The #class member is given as an argument
+     * @param[out] size Number of objects in this list
+     *
+     * @retval 0 Successful
+     * @retval 1 Fail
+     * 
+     * @code        
+     *         size_t size;
+     *         List* list = some impelemnting class;
+     *         list->getSize(list->class, &size)
      * @endcode
      */
     int (*getSize)(void* class, size_t* size);
 
     /**
-     * @brief   Removes all elements from the list
+     * @brief Returns true if this list contains the specified object
+     * 
+     * @param[in] Class The #class member is given as an argument
+     * @param[in] Object element whose presence in this list is to be tested
      *
-     * @param[in]   class   The #class member is given as an argument
-     *
-     * @retval  0  successful
-     * @retval  1  fail
+     * @retval 0 Successful
+     * @retval 1 Fail
+     * 
+     * @code        
+     *         int num = 99;
+     *         List* list = some impelemnting class;
+     *         list->contains(list->class, &num)
+     * @endcode
      */
-    int (*clear)(void* class);
+    int (*contains)(void* class, void* object);
 
     /**
      * @brief A pointer to the class that implements the interface

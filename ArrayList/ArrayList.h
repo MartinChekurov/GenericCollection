@@ -17,38 +17,34 @@
 typedef struct Private_t Private;
 
 /**
- *  @brief Type of constructor to be executed.Ref #newArrayList
+ *  @brief Type of constructor to be executed.Ref. #newArrayList.       
  */
 typedef enum {
 
-    /**
-     * @brief Creates an #ArrayList with a default allocated size of 16.
-     * 
-     * @details
-     *         Constructor arguments(in order):
-     *         
-     *         ARRAY_LIST_DEFAULT  
-     *      
-     *         size_t - size of the elements in the list        
+    /** @brief Creates an array list with a default allocated size of 16.
+     *         No other arguments        
      */
-    ARRAY_LIST_DEFAULT,
+	ARRAY_LIST_DEFAULT = 0,
 
-    /**
-     * @brief Creates an #ArrayList with a specified allocated size.
-     * 
-     * @details
-     *         Constructor arguments(in order):
-     *         
-     *         ARRAY_LIST_SET_SIZE
-     * 
-     *         size_t - allocated size of the list
-     *         
-     *         size_t - size of the elements in the list  
-     *         
+    /** @brief Creates an array list with a specified object size.
+     *         Expected argument is of type size_t
      */
-    ARRAY_LIST_SET_SIZE
+	ARRAY_LIST_OBJECT_SIZE = 2,
 
-}ArrayListConstructor;
+    /** @brief Creates an array list with a specified allocated size.
+     *         Expected argument is of type size_t   
+     */
+	ARRAY_LIST_ALLOC_SIZE = 4,
+
+    /** @brief Creates an array list with a compare function.
+     *         Expected argument is of type:
+     *  @code int (*Cmp)(void*, void*)
+     *  @endcode
+     *         Used in actions requiring comparing, such as List's method contains()
+     */
+	ARRAY_LIST_CMP = 8,
+	
+}ArrayListType;
 
 /**
  * @brief Internal data of the ArrayList object.
@@ -58,7 +54,7 @@ typedef struct {
     /**
      *  @brief Implements the #List interface.    
      */
-    List list;
+    List* list;
 
    /**
     * @brief Private data of the ArrayList object.
@@ -68,22 +64,21 @@ typedef struct {
 }ArrayList;
 
 /**
- * @brief   Returns an #ArrayList object
+ * @brief Returns an #ArrayList object
  *
- * @details
- *          Can be used as an implementation of the #List interface or standalone
+ * @details Can be used as an implementation of the #List interface or standalone
  * 
- * @param[in]   constuctor   type of constructor to be executed.Ref #ArrayListConstructor
- * @param[in]   ...   var args.Ref #ArrayListConstructor
+ * @param[in] Constuctor type of constructor to be executed.Ref. #ArrayListType
+ * @param[in] ... The arguments must be in the same order as the bits in #ArrayListType
  *
- * @retval  ArrayList  object if successful
- * @retval  NULL  if fail 
+ * @retval ArrayList Successful
+ * @retval NULL Fail
  * 
  * @code        
- *         List list = newArrayList(ARRAY_LIST_SET_SIZE, 5, sizeof(int))->list;
- *         ArrayList* list = newArrayList(ARRAY_LIST_SET_SIZE, 5, sizeof(int));
+ *         List list = newArrayList(ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE, sizeof(int), 10)->list;
+ *         ArrayList* list = newArrayList(ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE, sizeof(int), 10);
  * @endcode
  */
-ArrayList* newArrayList(ArrayListConstructor constuctor, ...);
+ArrayList* newArrayList(ArrayListType type, ...);
 
 #endif
