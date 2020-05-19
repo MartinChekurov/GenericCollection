@@ -82,11 +82,30 @@ typedef struct {
      * 
      * @code        
      *         List* list = some impelemnting class;
-     *         list->remove(list->class, 6);
+     *         list->removeIndex(list->class, 6);
      * @endcode
      */
-    int (*remove)(void* class, size_t index);
+    int (*removeIndex)(void* class, size_t index);
     
+        /**
+     * @brief Removes the first occurrence of the specified object from this list, if it is present.
+     *          
+     * @details If this list does not contain the element, it is unchanged
+     * 
+     * @param[in] class  The #class member is given as an argument
+     * @param[in] object Object to be removed from this list, if present
+     *
+     * @retval 0 Successful
+     * @retval 1 Fail
+     * 
+     * @code        
+     *         int num = 5;
+     *         List* list = some impelemnting class;
+     *         list->remove(list->class, &num);
+     * @endcode
+     */
+    int (*remove)(void* class, void* object);
+
     /**
      * @brief Returns the object at the specified position in this list
      *

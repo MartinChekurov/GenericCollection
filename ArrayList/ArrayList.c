@@ -3,7 +3,6 @@
 #include<stdarg.h>
 #include<limits.h>
 #include<string.h>
-#include<stdio.h>
 
 #define ARRAY_LIST_INITIAL_SIZE (16)
 
@@ -18,6 +17,27 @@ struct Private_t {
 
     Cmp cmp;
 };
+
+static int contains_(void* class, void* object, size_t* index)
+{
+    size_t *obj = 0, size = 0, elemSize = 0, i = 0;
+    Cmp cmp = 0;
+    if (!class || !object || !index || !((ArrayList*)class)->private ||
+        !((ArrayList*)class)->private->cmp) {
+        return 1;
+    }
+    size = ((ArrayList*)class)->private->size;
+    elemSize = ((ArrayList*)class)->private->elemSize;
+    cmp = ((ArrayList*)class)->private->cmp;
+    for (i = 0 ; i < size ; i++) {
+        obj = ((ArrayList*)class)->private->array + (i*elemSize);
+        if (!cmp(obj, object)) {
+            *index = i;
+            return 0;
+        }
+    }
+    return 1;
+}
 
 static char resize(ArrayList* arrayList)
 {
@@ -44,7 +64,7 @@ static int getSize(void* class, size_t* size)
 }
 
 static int add(void* class, void* object)
-{
+{   
     size_t pos = 0, size = 0, elemSize = 0, allocSize = 0;
     if (!class || !object || !((ArrayList*)class)->private) {
         return 1;
@@ -133,7 +153,7 @@ static int clear(void* class)
     return 0;
 }
 
-static int remove_(void* class, size_t index)
+static int removeIndex(void* class, size_t index)
 {
     size_t *src = 0, *dst = 0;
     size_t size = 0, elemSize = 0;
@@ -152,24 +172,36 @@ static int remove_(void* class, size_t index)
     return 0;
 }
 
-static int contains(void* class, void* object)
-{
-    size_t *obj = 0, size = 0, elemSize = 0, i = 0;
-    Cmp cmp = 0;
-    if (!class || !object || !((ArrayList*)class)->private ||
-        !((ArrayList*)class)->private->cmp) {
+static int remove(void* class, void* object)
+{   
+    int status = 0;
+    size_t index = 0;
+    if (!class || !object) {
         return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    cmp = ((ArrayList*)class)->private->cmp;
-    for (i = 0 ; i < size ; i++) {
-        obj = ((ArrayList*)class)->private->array + (i*elemSize);
-        if (!cmp(obj, object)) {
-            return 0;
-        }
+    status = contains_(class, object, &index);
+    if (status) {
+        return 1;
     }
-    return 1;
+    status = removeIndex(class, index);
+    if (status) {
+        return 1;
+    }
+    return 0;
+}
+
+static int contains(void* class, void* object)
+{
+    int status = 0;
+    size_t index = 0;
+    if (!class || !object) {
+        return 1;
+    }
+    status = contains_(class, object, &index);
+    if (status) {
+        return 1;
+    }
+    return 0;
 }
 
 static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
@@ -186,14 +218,19 @@ static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
     if (!arrayList->private) {
         return NULL;
     }
+    
     arrayList->list->getSize = getSize;
-    arrayList->list->add = add;
     arrayList->list->get = get;
-    arrayList->list->clear = clear;
-    arrayList->list->remove = remove_;
-    arrayList->list->contains = contains;
     arrayList->list->set = set;
+
+    arrayList->list->add = add;
     arrayList->list->addIndex= addIndex;
+
+    arrayList->list->clear = clear;
+    arrayList->list->removeIndex = removeIndex;
+    arrayList->list->remove = remove;
+
+    arrayList->list->contains = contains;
 
     if (cmp) {
         arrayList->private->cmp = cmp;
