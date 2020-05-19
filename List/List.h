@@ -35,6 +35,26 @@ typedef struct {
     int (*add)(void* class, void* object);
 
     /**
+     * @brief Inserts the specified object at the specified position in this list
+     *
+     * @details Shifts the element currently at that position (if any) and any subsequent elements to the right
+     * 
+     * @param[in] class The #class member is given as an argument
+     * @param[in] index Index at which the specified element is to be inserted
+     * @param[in] objects Object to be inserted
+     *
+     * @retval 0 Successful
+     * @retval 1 Fail
+     * 
+     * @code        
+     *        int num = 20;
+     *        List* list = some impelemnting class;
+     *        list->addIndex(list->class, 5, &num);
+     * @endcode
+     */
+    int (*addIndex)(void* class, size_t index, void* object);
+
+    /**
      * @brief Removes all objects from the list
      *
      * @param[in] class The #class member is given as an argument
