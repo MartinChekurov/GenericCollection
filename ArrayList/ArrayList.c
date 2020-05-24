@@ -20,18 +20,16 @@ struct Private_t {
 
 static int contains_(void* class, void* object, size_t* index)
 {
-    size_t *obj = 0, size = 0, elemSize = 0, i = 0;
+    size_t *obj = 0, i = 0;
     Cmp cmp = 0;
-    if (!class || !object || !index || !((ArrayList*)class)->private ||
-        !((ArrayList*)class)->private->cmp) {
+    ArrayList* list = class;
+    if (!list || !object || !index || !list->private ||
+        !list->private->cmp) {
         return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    cmp = ((ArrayList*)class)->private->cmp;
-    for (i = 0 ; i < size ; i++) {
-        obj = ((ArrayList*)class)->private->array + (i*elemSize);
-        if (!cmp(obj, object)) {
+    for (i = 0 ; i < list->private->size ; i++) {
+        obj = list->private->array + (i*list->private->elemSize);
+        if (!list->private->cmp(obj, object)) {
             *index = i;
             return 0;
         }
@@ -56,119 +54,113 @@ static char resize(ArrayList* arrayList)
 
 static int getSize(void* class, size_t* size)
 {
-    if (!class || !size) {
+    ArrayList* list = class;
+    if (!list || !size) {
         return 1;
     }
-    *size = ((ArrayList*)class)->private->size;
+    *size = list->private->size;
     return 0;
 }
 
 static int add(void* class, void* object)
 {   
-    size_t pos = 0, size = 0, elemSize = 0, allocSize = 0;
-    if (!class || !object || !((ArrayList*)class)->private) {
+    size_t pos = 0;
+    ArrayList* list = class;
+    if (!list || !object || !list->private) {
         return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    if (!size >= ((size_t)-1)) {
+    if (list->private->size >= ((size_t)-1)) {
         return 1;
     }
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    allocSize = ((ArrayList*)class)->private->allocSize;
-    if (size >= allocSize) {
-        if (resize(class)) {
+    if (list->private->size >= list->private->allocSize) {
+        if (resize(list)) {
             return 1;
         }
     }
-    pos = size * elemSize;
-    memcpy(((ArrayList*)class)->private->array + pos, object, elemSize);
-    ((ArrayList*)class)->private->size++;
+    pos = list->private->size * list->private->elemSize;
+    memcpy(list->private->array + pos, object, list->private->elemSize);
+    list->private->size++;
     return 0;
 }
 
 static int addIndex(void* class, size_t index, void* object)
 {
-    size_t *src = 0, *dst = 0, size = 0, elemSize = 0, allocSize = 0;
-    if (!class || !object || !((ArrayList*)class)->private) {
+    size_t *src = 0, *dst = 0;
+    ArrayList* list = class;
+    if (!list || !object || !list->private) {
         return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    if (size >= ((size_t)-1) || index >= size) {
+    if (list->private->size >= ((size_t)-1) || index >= list->private->size) {
         return 1;
     }
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    allocSize = ((ArrayList*)class)->private->allocSize;
-    if (size >= allocSize) {
-        if (resize(class)) {
+    if (list->private->size >= list->private->allocSize) {
+        if (resize(list)) {
             return 1;
         }
     }
-    src = ((ArrayList*)class)->private->array + (index * elemSize);
-    dst = ((ArrayList*)class)->private->array + ((index+1) * elemSize);
-    memmove(dst, src, (size - index) * elemSize);
-    memcpy(src, object, elemSize);
-    ((ArrayList*)class)->private->size++;
+    src = list->private->array + (index * list->private->elemSize);
+    dst = list->private->array + ((index+1) * list->private->elemSize);
+    memmove(dst, src, (list->private->size - index) * list->private->elemSize);
+    memcpy(src, object, list->private->elemSize);
+    list->private->size++;
     return 0;
 }
 
 static int get(void* class, size_t index, void* object)
 {
-    size_t *pos = 0, size = 0, elemSize = 0;
-    if (!class || !object || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
+    size_t *pos = 0;
+    ArrayList* list = class;
+    if (!list || !object || !list->private || (index >= (size_t)-1)) {
         return 1;
     }  
-    size = ((ArrayList*)class)->private->size;
-    if (!size || index >= size) {
+    if (!list->private->size || index >= list->private->size) {
         return 1;
     }
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    pos = ((ArrayList*)class)->private->array + (index * elemSize);
-    memcpy(object, pos, elemSize);
+    pos = list->private->array + (index * list->private->elemSize);
+    memcpy(object, pos, list->private->elemSize);
     return 0;
 }
 
 static int set(void* class, size_t index, void* object)
 {
-    size_t *pos = 0, size = 0, elemSize = 0;
-    if (!class || !object || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
+    size_t *pos = 0;
+    ArrayList* list = class;
+    if (!list || !object || !list->private || (index >= (size_t)-1)) {
         return 1;
     }  
-    size = ((ArrayList*)class)->private->size;
-    if (!size || index >= size) {
+    if (!list->private->size || index >= list->private->size) {
         return 1;
     }
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    pos = ((ArrayList*)class)->private->array + (index * elemSize);
-    memset(pos, 0, elemSize);
-    memcpy(pos, object, elemSize);
+    pos = list->private->array + (index * list->private->elemSize);
+    memset(pos, 0, list->private->elemSize);
+    memcpy(pos, object, list->private->elemSize);
     return 0;
 }
 
 static int clear(void* class)
 {
-    if (!class) {
+    ArrayList* list = class;
+    if (!list) {
         return 1;
     }
-    ((ArrayList*)class)->private->size = 0;
+    list->private->size = 0;
     return 0;
 }
 
 static int removeIndex(void* class, size_t index)
 {
     size_t *src = 0, *dst = 0;
-    size_t size = 0, elemSize = 0;
-    if (!class || !((ArrayList*)class)->private || (index >= (size_t)-1)) {
+    ArrayList* list = class;
+    if (!list || !list->private || (index >= (size_t)-1)) {
         return 1;
     }
-    size = ((ArrayList*)class)->private->size;
-    if (!size || index >= size) {
+    if (!list->private->size || index >= list->private->size) {
         return 1;
     }
-    elemSize = ((ArrayList*)class)->private->elemSize;
-    src = ((ArrayList*)class)->private->array + ((index + 1) * elemSize); 
-    dst = ((ArrayList*)class)->private->array + (index * elemSize);
-    memmove(dst, src, (size - index - 1) * elemSize);
-    ((ArrayList*)class)->private->size--;
+    src = list->private->array + ((index + 1) * list->private->elemSize); 
+    dst = list->private->array + (index * list->private->elemSize);
+    memmove(dst, src, (list->private->size - index - 1) * list->private->elemSize);
+    list->private->size--;
     return 0;
 }
 
