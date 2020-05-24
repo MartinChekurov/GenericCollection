@@ -118,7 +118,7 @@ static int add(void* class, void* object)
         node->pNext = NULL;       
     } else {
         currNode = list->private->head;
-        while(currNode && currNode->pNext) {
+        while(currNode->pNext) {
             currNode = currNode->pNext;
         }
         currNode->pNext = node;
@@ -149,16 +149,18 @@ static int addIndex(void* class, size_t index, void* object)
         node->pNext = NULL;       
     } else {
         currNode = list->private->head;
-        while(currNode && currNode->pNext) {
+        while(currNode->pNext) {
             if (i+1 == index) {
-                node = currNode->pNext;
+                node->pNext = currNode->pNext;
                 currNode->pNext = node;
+                list->private->size++;
+                return 0;
             }
             i++;
+            currNode = currNode->pNext;
         }
     }
-    list->private->size++;
-    return 0;
+    return 1;
 }
 
 static int get(void* class, size_t index, void* object)
@@ -209,7 +211,6 @@ static int clear(void* class)
         }
     }
     list->private->size = 0;
-    free(list);
     return 0;
 }
 
@@ -228,11 +229,13 @@ static int removeIndex(void* class, size_t index)
     while(currNode && currNode->pNext) {
         if (i+1 == index) {
             currNode->pNext = currNode->pNext->pNext;
+            list->private->size--;
+            return 0;
         }
+        currNode = currNode->pNext;
         i++;
     }
-    list->private->size--;
-    return 0;
+    return 1;
 }
 
 static int remove(void* class, void* object)
