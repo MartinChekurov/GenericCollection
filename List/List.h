@@ -177,6 +177,21 @@ typedef struct {
     int (*contains)(void* class, void* object);
 
     /**
+     * @brief Destroys the list
+     * 
+     * @param[in] Class The #class member is given as an argument
+     *
+     * @retval 0 Successful
+     * @retval 1 Fail
+     * 
+     * @code        
+     *         List* list = some impelemnting class;
+     *         list->destroy(list->class)
+     * @endcode
+     */
+    int (*destroy)(void* class);
+
+    /**
      * @brief A pointer to the class that implements the interface
      * 
      * @details 

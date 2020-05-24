@@ -270,6 +270,19 @@ static int contains(void* class, void* object)
     return 0;
 }
 
+static int destroy(void* class)
+{
+    LinkedList* list = class;
+    if (!list || !list->private) {
+        return 1;
+    }
+    clear(list);
+    free(list->private);
+    free(list->list);
+    free(list);
+    return 0;
+}
+
 static LinkedList* constructor(size_t elemSize, Cmp cmp)
 {
     LinkedList* linkedList = calloc(1, sizeof(*linkedList));

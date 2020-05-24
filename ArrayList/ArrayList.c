@@ -196,6 +196,19 @@ static int contains(void* class, void* object)
     return 0;
 }
 
+static int destroy(void* class)
+{
+    ArrayList* list = class;
+    if (!list || !list->private) {
+        return 1;
+    }
+    free(list->private->array);
+    free(list->private);
+    free(list->list);
+    free(list);
+    return 0;
+}
+
 static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
 {
     ArrayList* arrayList = calloc(1, sizeof(*arrayList));
@@ -223,6 +236,8 @@ static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
     arrayList->list->remove = remove;
 
     arrayList->list->contains = contains;
+
+    arrayList->list->destroy = destroy;
 
     if (cmp) {
         arrayList->private->cmp = cmp;
