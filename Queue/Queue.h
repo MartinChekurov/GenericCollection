@@ -27,7 +27,7 @@ typedef struct {
      * @code        
      *        int num = 20;
      *        Queue* queue = some impelemnting class;
-     *        queue->offer(list->class, &num);
+     *        queue->offer(queue->class, &num);
      * @endcode
      */
     int (*offer)(void* class, void* object);
@@ -44,7 +44,7 @@ typedef struct {
      * @code        
      *          int num = 0;
      *          Queue* queue = some impelemnting class;
-     *          queue->peek(list->class, &num)
+     *          queue->peek(queue->class, &num)
      * @endcode
      */
     int (*peek)(void* class, void* object);
@@ -61,7 +61,7 @@ typedef struct {
      * @code        
      *          int num = 0;
      *          Queue* queue = some impelemnting class;
-     *          queue->poll(list->class, &num)
+     *          queue->poll(queue->class, &num)
      * @endcode
      */
     int (*poll)(void* class, void* object);   
@@ -76,7 +76,7 @@ typedef struct {
      * 
      * @code        
      *         Queue* queue = some impelemnting class;
-     *         queue->destroy(list->class)
+     *         queue->destroy(queue->class)
      * @endcode
      */
     int (*destroy)(void* class);
