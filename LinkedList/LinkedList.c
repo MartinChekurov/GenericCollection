@@ -200,7 +200,7 @@ static int clear(void* class)
 {
     Node* node = NULL;
     LinkedList* list = class;
-    if (!list) {
+    if (!list || !list->private) {
         return 1;
     }
     while(list->private->head) {
@@ -273,17 +273,44 @@ static int contains(void* class, void* object)
 static int destroy(void* class)
 {
     LinkedList* list = class;
-    if (!list || !list->private) {
-        return 1;
-    }
     clear(list);
-    free(list->private);
-    free(list->list);
-    free(list);
+    if (list) {
+        free(list->private);
+        free(list->list);
+        free(list);
+    }
     return 0;
 }
 
-static LinkedList* constructor(size_t elemSize, Cmp cmp)
+static int listConstructor(LinkedList* list)
+{
+    if (!list) {
+        return 1;
+    }
+    list->list = calloc(1, sizeof(*list->list));
+    if (!list->private) {
+        return 1;
+    }
+    list->list->class = list;
+
+    list->list->getSize = getSize;
+    list->list->get = get;
+    list->list->set = set;
+
+    list->list->add = add;
+    list->list->addIndex= addIndex;
+
+    list->list->clear = clear;
+    list->list->removeIndex = removeIndex;
+    list->list->remove = remove;
+
+    list->list->contains = contains;
+    
+    list->list->destroy = destroy;
+    return 0;
+}
+
+static LinkedList* constructor(LinkedListInterface interface, size_t elemSize, Cmp cmp)
 {
     LinkedList* linkedList = calloc(1, sizeof(*linkedList));
     if (!linkedList) {
@@ -291,35 +318,23 @@ static LinkedList* constructor(size_t elemSize, Cmp cmp)
     }
     linkedList->private = calloc(1, sizeof(*linkedList->private));
     if (!linkedList->private) {
+        destroy(linkedList);
         return NULL;
     }
-    linkedList->list = calloc(1, sizeof(*linkedList->list));
-    if (!linkedList->private) {
-        return NULL;
-    }
-    
-    linkedList->list->getSize = getSize;
-    linkedList->list->get = get;
-    linkedList->list->set = set;
-
-    linkedList->list->add = add;
-    linkedList->list->addIndex= addIndex;
-
-    linkedList->list->clear = clear;
-    linkedList->list->removeIndex = removeIndex;
-    linkedList->list->remove = remove;
-
-    linkedList->list->contains = contains;
-
     if (cmp) {
         linkedList->private->cmp = cmp;
     }
-    linkedList->list->class = linkedList;
     linkedList->private->elemSize = elemSize;
+    if (interface & LINKED_LIST_INTEFACE_LIST) {
+        if (listConstructor(linkedList)) {
+            destroy(linkedList);
+            return NULL;
+        }
+    }
     return linkedList;
 }
 
-LinkedList* newLinkedList(LinkedListType type, ...)
+LinkedList* newLinkedList(LinkedListInterface interface, LinkedListType type, ...)
 {   
     size_t elemSize = 0;
     Cmp cmp = 0;
@@ -341,7 +356,7 @@ LinkedList* newLinkedList(LinkedListType type, ...)
         cmp = va_arg(args, Cmp);
     }
 
-    linkedList = constructor(elemSize, cmp);
+    linkedList = constructor(interface, elemSize, cmp);
     va_end(args);
     return linkedList;
 }

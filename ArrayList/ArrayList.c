@@ -8,7 +8,7 @@
 
 typedef int (*Cmp)(void*, void*);
 
-struct Private_t {
+struct ArrayListPrivate_t {
 
     size_t size;
     size_t elemSize;
@@ -199,17 +199,46 @@ static int contains(void* class, void* object)
 static int destroy(void* class)
 {
     ArrayList* list = class;
-    if (!list || !list->private) {
-        return 1;
+    if (list) {
+        if (list->private) {
+            free(list->private->array);
+            free(list->private);
+        }
+        free(list->list);
+        free(list);
     }
-    free(list->private->array);
-    free(list->private);
-    free(list->list);
-    free(list);
     return 0;
 }
 
-static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
+static int listConstructor(ArrayList* list)
+{
+    if (!list) {
+        return 1;
+    }
+    list->list = calloc(1, sizeof(*list->list));
+    if (!list->private) {
+        return 1;
+    }
+    list->list->class = list;
+
+    list->list->getSize = getSize;
+    list->list->get = get;
+    list->list->set = set;
+
+    list->list->add = add;
+    list->list->addIndex= addIndex;
+
+    list->list->clear = clear;
+    list->list->removeIndex = removeIndex;
+    list->list->remove = remove;
+
+    list->list->contains = contains;
+
+    list->list->destroy = destroy;
+    return 0;
+}
+
+static ArrayList* constructor(ArrayListInterface interface, size_t elemSize, size_t allocSize, Cmp cmp)
 {
     ArrayList* arrayList = calloc(1, sizeof(*arrayList));
     if (!arrayList) {
@@ -217,42 +246,29 @@ static ArrayList* constructor(size_t elemSize, size_t allocSize, Cmp cmp)
     }
     arrayList->private = calloc(1, sizeof(*arrayList->private));
     if (!arrayList->private) {
+        destroy(arrayList);
         return NULL;
     }
-    arrayList->list = calloc(1, sizeof(*arrayList->list));
-    if (!arrayList->private) {
-        return NULL;
-    }
-    
-    arrayList->list->getSize = getSize;
-    arrayList->list->get = get;
-    arrayList->list->set = set;
-
-    arrayList->list->add = add;
-    arrayList->list->addIndex= addIndex;
-
-    arrayList->list->clear = clear;
-    arrayList->list->removeIndex = removeIndex;
-    arrayList->list->remove = remove;
-
-    arrayList->list->contains = contains;
-
-    arrayList->list->destroy = destroy;
-
-    if (cmp) {
-        arrayList->private->cmp = cmp;
-    }
-    arrayList->list->class = arrayList;
     arrayList->private->elemSize = elemSize;
     arrayList->private->allocSize = allocSize;
     arrayList->private->array = calloc(arrayList->private->allocSize, arrayList->private->elemSize);
     if (!arrayList->private->array) {
+        destroy(arrayList);
         return NULL;
+    }
+    if (cmp) {
+        arrayList->private->cmp = cmp;
+    }
+    if (interface & ARRAY_LIST_INTEFACE_LIST) {
+        if (listConstructor(arrayList)) {
+            destroy(arrayList);
+            return NULL;
+        }
     }
     return arrayList;
 }
 
-ArrayList* newArrayList(ArrayListType type, ...)
+ArrayList* newArrayList(ArrayListInterface interface, ArrayListType type, ...)
 {   
     size_t elemSize = 0;
     size_t allocSize = ARRAY_LIST_INITIAL_SIZE;
@@ -278,7 +294,7 @@ ArrayList* newArrayList(ArrayListType type, ...)
         cmp = va_arg(args, Cmp);
     }
 
-    arrayList = constructor(elemSize, allocSize, cmp);
+    arrayList = constructor(interface, elemSize, allocSize, cmp);
     va_end(args);
     return arrayList;
 }

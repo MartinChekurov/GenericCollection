@@ -14,7 +14,22 @@
 /**
 * @brief Private data of the #ArrayList object.
 */ 
-typedef struct Private_t Private;
+typedef struct ArrayListPrivate_t ArrayListPrivate;
+
+/**
+ *  @brief Describes which iterface is to be implemented      
+ */
+typedef enum {
+
+    /** @brief Implements #List interface       
+     */
+	ARRAY_LIST_INTEFACE_LIST = 0,
+
+    /** @brief Implements #Queue interface 
+     */
+	ARRAY_LIST_INTEFACE_QUEUE = 2,
+	
+}ArrayListInterface;
 
 /**
  *  @brief Type of constructor to be executed.Ref. #newArrayList.       
@@ -59,7 +74,7 @@ typedef struct {
    /**
     * @brief Private data of the ArrayList object.
     */ 
-    Private* private;    
+    ArrayListPrivate* private;    
     
 }ArrayList;
 
@@ -68,17 +83,22 @@ typedef struct {
  *
  * @details Can be used as an implementation of the #List interface or standalone
  * 
- * @param[in] Constuctor type of constructor to be executed.Ref. #ArrayListType
+ * @param[in] interface Type of interface to be implemented.Ref. #ArrayListInterface
+ * @param[in] type Type of constructor to be executed.Ref. #ArrayListType
  * @param[in] ... The arguments must be in the same order as the bits in #ArrayListType
  *
  * @retval ArrayList Successful
  * @retval NULL Fail
  * 
  * @code        
- *         List list = newArrayList(ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE, sizeof(int), 10)->list;
- *         ArrayList* list = newArrayList(ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE, sizeof(int), 10);
+ *         List list = newArrayList(ARRAY_LIST_INTEFACE_LIST,
+ *                                  ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE,
+ *                                  sizeof(int), 10)->list;
+ *         ArrayList* list = newArrayList(ARRAY_LIST_INTEFACE_LIST,
+ *                                       ARRAY_LIST_OBJECT_SIZE | ARRAY_LIST_ALLOC_SIZE,
+ *                                       sizeof(int), 10);
  * @endcode
  */
-ArrayList* newArrayList(ArrayListType type, ...);
+ArrayList* newArrayList(ArrayListInterface interface, ArrayListType type, ...);
 
 #endif

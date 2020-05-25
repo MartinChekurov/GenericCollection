@@ -17,6 +17,21 @@
 typedef struct LinkedListPrivate_t LinkedListPrivate;
 
 /**
+ *  @brief Describes which iterface is to be implemented      
+ */
+typedef enum {
+
+    /** @brief Implements #List interface       
+     */
+	LINKED_LIST_INTEFACE_LIST = 0,
+
+    /** @brief Implements #Queue interface 
+     */
+	LINKED_LIST_INTEFACE_QUEUE = 2,
+	
+}LinkedListInterface;
+
+/**
  *  @brief Type of constructor to be executed.Ref. #newLinkedList.       
  */
 typedef enum {
@@ -62,18 +77,23 @@ typedef struct {
  * @brief Returns an #LinkedList object
  *
  * @details Can be used as an implementation of the #List interface or standalone
- * 
- * @param[in] Constuctor type of constructor to be executed.Ref. #LinkedListType
+ *
+ * @param[in] interface Type of interface to be implemented.Ref. #LinkedListInterface 
+ * @param[in] type Type of constructor to be executed.Ref. #LinkedListType
  * @param[in] ... The arguments must be in the same order as the bits in #LinkedListType
  *
  * @retval LinkedList Successful
  * @retval NULL Fail
  * 
  * @code        
- *         List list = newLinkedList(LINKED_LIST_OBJECT_SIZE, sizeof(int))->list;
- *         LinkedList* list = newLinkedList(LINKED_LIST_OBJECT_SIZE, sizeof(int));
+ *         List list = newLinkedList(LINKED_LIST_INTEFACE_LIST,
+ *                                   LINKED_LIST_OBJECT_SIZE,
+ *                                   sizeof(int), 10)->list;
+ *         ArrayList* list = newLinkedList(LINKED_LIST_INTEFACE_LIST,
+ *                                         LINKED_LIST_OBJECT_SIZE,
+ *                                         sizeof(int), 10);
  * @endcode
  */
-LinkedList* newLinkedList(LinkedListType type, ...);
+LinkedList* newLinkedList(LinkedListInterface interface, LinkedListType type, ...);
 
 #endif
