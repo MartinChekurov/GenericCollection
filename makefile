@@ -1,7 +1,7 @@
 build = Build
 src = main ArrayList/ArrayList LinkedList/LinkedList
 obj = $(addsuffix .o, $(addprefix $(build)/, $(src)))
-CFLAGS = -IArrayList -ILinkedList -IList
+CFLAGS = -IArrayList -ILinkedList -IList -IQueue
 CC = gcc
 
 all: $(build)/test.exe
